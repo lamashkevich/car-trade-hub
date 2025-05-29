@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -86,6 +87,43 @@ class LotControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void create_whenRequestIsNotValid() throws Exception {
+        var request = """
+                {
+                    "year": 1800,
+                    "vin": "1234",
+                    "odometer": {
+                        "value": -1
+                    },
+                    "engine": "",
+                    "damage": "",
+                    "title": "",
+                    "auctionDate": "20-12-2020 17:00"
+                }
+                """;
+
+        when(lotService.create(any(LotCreateDto.class))).thenReturn(null);
+
+        mockMvc.perform(post(BASE_URL)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isBadRequest()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(containsString("Lot number is required")))
+                .andExpect(content().string(containsString("Auction type is required")))
+                .andExpect(content().string(containsString("Lot type is required")))
+                .andExpect(content().string(containsString("Year must be at least 1900")))
+                .andExpect(content().string(containsString("VIN must be exactly 17 characters")))
+                .andExpect(content().string(containsString("Odometer value be at least 0")))
+                .andExpect(content().string(containsString("Odometer unit is required")))
+                .andExpect(content().string(containsString("Odometer status is required")))
+                .andExpect(content().string(containsString("Engine must be between 3 and 20 characters")))
+                .andExpect(content().string(containsString("Damage must contain more than 3 characters")))
+                .andExpect(content().string(containsString("Title must be between 3 and 20 characters")))
+                .andExpect(content().string(containsString("Auction date cannot be in the past")));
     }
 
     @Test

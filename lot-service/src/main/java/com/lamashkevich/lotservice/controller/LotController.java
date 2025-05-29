@@ -3,6 +3,7 @@ package com.lamashkevich.lotservice.controller;
 import com.lamashkevich.lotservice.dto.LotCreateDto;
 import com.lamashkevich.lotservice.dto.LotResponseDto;
 import com.lamashkevich.lotservice.service.LotService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class LotController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LotResponseDto create(@RequestBody LotCreateDto lotCreateDto) {
+    public LotResponseDto create(@Valid @RequestBody LotCreateDto lotCreateDto) {
         return lotService.create(lotCreateDto);
     }
 
