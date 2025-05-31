@@ -1,13 +1,16 @@
 package com.lamashkevich.lotservice.service;
 
 import com.lamashkevich.lotservice.dto.LotCreateDto;
+import com.lamashkevich.lotservice.dto.LotFilter;
 import com.lamashkevich.lotservice.dto.OdometerRequestDto;
+import com.lamashkevich.lotservice.dto.PaginationDto;
 import com.lamashkevich.lotservice.entity.*;
 import com.lamashkevich.lotservice.exception.LotAlreadyExistsException;
 import com.lamashkevich.lotservice.exception.LotNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -77,7 +80,7 @@ class LotServiceTest {
         assertEquals(lotCreateDto.odometer().value(), result.odometer().value());
         assertEquals(lotCreateDto.odometer().unit(), result.odometer().unit());
         assertEquals(lotCreateDto.odometer().status(), result.odometer().status());
-       assertEquals(lotCreateDto.engine(), result.engine());
+        assertEquals(lotCreateDto.engine(), result.engine());
         assertEquals(lotCreateDto.fuel(), result.fuel());
         assertEquals(lotCreateDto.transmission(), result.transmission());
         assertEquals(lotCreateDto.drive(), result.drive());
@@ -108,6 +111,23 @@ class LotServiceTest {
         assertThrows(LotNotFoundException.class, () -> lotService.deleteById(NOT_EXISING_ID));
     }
 
+    @Test
+    void findAllByFilter_whenFilterIsValid() {
+        var page = 1;
+        var size = 10;
+        var sortBy = "id";
+        var sortDirection = "ASC";
+        var pagination = new PaginationDto(page, size, sortBy, sortDirection);
+
+        var result = lotService.findAllByFilter(getEmptyLotFilter(), pagination);
+
+        assertNotNull(result);
+        assertEquals(page, result.pageNumber());
+        assertEquals(size, result.pageSize());
+        assertEquals(sortBy, result.sortBy());
+        assertEquals(Sort.Direction.fromString(sortDirection), result.sortDirection());
+    }
+
     private LotCreateDto getLotCreateDto(Integer lotNumber) {
         return new LotCreateDto(
                 lotNumber,
@@ -126,6 +146,14 @@ class LotServiceTest {
                 "unknown",
                 "unknown",
                 LocalDateTime.now()
+        );
+    }
+
+    private LotFilter getEmptyLotFilter() {
+        return new LotFilter(
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null
         );
     }
 }

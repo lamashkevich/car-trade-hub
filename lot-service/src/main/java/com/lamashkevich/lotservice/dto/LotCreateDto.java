@@ -45,7 +45,7 @@ public record LotCreateDto(
         @Size(min = 3, message = "Damage must contain more than 3 characters")
         String damage,
 
-        @Size(min = 3, max = 100, message = "Title must be between 3 and 20 characters")
+        @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
         String title,
 
         @FutureOrPresent(message = "Auction date cannot be in the past")

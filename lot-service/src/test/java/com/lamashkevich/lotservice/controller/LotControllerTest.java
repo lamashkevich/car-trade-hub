@@ -1,8 +1,6 @@
 package com.lamashkevich.lotservice.controller;
 
-import com.lamashkevich.lotservice.dto.LotCreateDto;
-import com.lamashkevich.lotservice.dto.LotResponseDto;
-import com.lamashkevich.lotservice.dto.OdometerResponseDto;
+import com.lamashkevich.lotservice.dto.*;
 import com.lamashkevich.lotservice.entity.*;
 import com.lamashkevich.lotservice.exception.LotAlreadyExistsException;
 import com.lamashkevich.lotservice.exception.LotNotFoundException;
@@ -10,11 +8,14 @@ import com.lamashkevich.lotservice.service.LotService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -122,7 +123,7 @@ class LotControllerTest {
                 .andExpect(content().string(containsString("Odometer status is required")))
                 .andExpect(content().string(containsString("Engine must be between 3 and 20 characters")))
                 .andExpect(content().string(containsString("Damage must contain more than 3 characters")))
-                .andExpect(content().string(containsString("Title must be between 3 and 20 characters")))
+                .andExpect(content().string(containsString("Title must be between 3 and 100 characters")))
                 .andExpect(content().string(containsString("Auction date cannot be in the past")));
     }
 
@@ -146,6 +147,34 @@ class LotControllerTest {
         mockMvc.perform(delete(BASE_URL + "/" + lotId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAll_whenRequestIsEmpty() throws Exception {
+        var response = new PageDto<LotResponseDto>(8, 2, 1, 5,
+                "id", Sort.Direction.ASC, List.of());
+        when(lotService.findAllByFilter(any(LotFilter.class), any(PaginationDto.class))).thenReturn(response);
+
+        mockMvc.perform(get(BASE_URL))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void getAll_whenRequestIsInvalid() throws Exception {
+        var response = new PageDto<LotResponseDto>(1, 1, 1, 1,
+                "id", Sort.Direction.ASC, List.of());
+
+        when(lotService.findAllByFilter(any(LotFilter.class), any(PaginationDto.class))).thenReturn(response);
+
+        mockMvc.perform(get(BASE_URL)
+                        .param("page", "-1")
+                        .param("size", "-1")
+                        .param("sort", "INVALID")
+                        .param("direction", "INVALID")
+                        .param("auctionType","COPART"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     private LotResponseDto getLotResponseDto(Long id) {
@@ -193,8 +222,10 @@ class LotControllerTest {
                 "key": true,
                 "damage": "1234",
                 "title": "1234",
-                "auctionDate": "10-12-2024 17:20"
+                "auctionDate": "%s"
             }
-            """;
+            """.formatted(
+                    LocalDateTime.now().plusDays(1)
+                            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
     }
 }

@@ -1,7 +1,6 @@
 package com.lamashkevich.lotservice.controller;
 
-import com.lamashkevich.lotservice.dto.LotCreateDto;
-import com.lamashkevich.lotservice.dto.LotResponseDto;
+import com.lamashkevich.lotservice.dto.*;
 import com.lamashkevich.lotservice.service.LotService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class LotController {
 
     private final LotService lotService;
+
+    @GetMapping
+    public PageDto<LotResponseDto> getAll(@Valid LotFilter filter, @Valid PaginationDto paginationDto) {
+        return lotService.findAllByFilter(filter, paginationDto);
+    }
 
     @GetMapping("/{id}")
     public LotResponseDto getById(@PathVariable Long id) {
