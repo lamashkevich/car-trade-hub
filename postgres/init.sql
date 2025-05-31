@@ -1,0 +1,1 @@
+CREATE DATABASE lot_service;
